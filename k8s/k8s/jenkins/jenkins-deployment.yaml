@@ -26,18 +26,25 @@ spec:
         app: jenkins
     spec:
       containers:
-      - name: jenkins
-        image: jenkins/jenkins:lts
-        ports:
-        - containerPort: 8080
-        - containerPort: 50000
-        volumeMounts:
-        - name: jenkins-data
-          mountPath: /var/jenkins_home
+        - name: jenkins
+          image: karthickdevops/jenkins-docker:latest
+          ports:
+            - containerPort: 8080
+            - containerPort: 50000
+          volumeMounts:
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+            - name: jenkins-data
+              mountPath: /var/jenkins_home
+          securityContext:
+            privileged: true
       volumes:
-      - name: jenkins-data
-        persistentVolumeClaim:
-          claimName: jenkins-pvc
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+        - name: jenkins-data
+          persistentVolumeClaim:
+            claimName: jenkins-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -52,3 +59,4 @@ spec:
       nodePort: 32000
   selector:
     app: jenkins
+
