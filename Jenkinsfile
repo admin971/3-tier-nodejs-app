@@ -7,21 +7,25 @@ pipeline {
     DOCKER_IMAGE_FRONTEND = "karthickdevops/frontend"
   }
 
+  options {
+    timestamps()
+    ansiColor('xterm')
+  }
+
   stages {
-    stage('Clone Repo') {
+    stage('Docker Login') {
       steps {
-        git credentialsId: 'github', url: 'https://github.com/admin971/3-tier-nodejs-app.git', branch: 'main'
+        script {
+          sh "echo ${DOCKER_HUB_CREDENTIALS_PSW} | docker login -u ${DOCKER_HUB_CREDENTIALS_USR} --password-stdin"
+        }
       }
     }
 
     stage('Build & Push Backend') {
       steps {
         dir('backend') {
-          script {
-            sh "docker build -t $DOCKER_IMAGE_BACKEND:latest ."
-            sh "echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin"
-            sh "docker push $DOCKER_IMAGE_BACKEND:latest"
-          }
+          sh "docker build -t ${DOCKER_IMAGE_BACKEND}:latest ."
+          sh "docker push ${DOCKER_IMAGE_BACKEND}:latest"
         }
       }
     }
@@ -29,11 +33,8 @@ pipeline {
     stage('Build & Push Frontend') {
       steps {
         dir('frontend') {
-          script {
-            sh "docker build -t $DOCKER_IMAGE_FRONTEND:latest ."
-            sh "echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin"
-            sh "docker push $DOCKER_IMAGE_FRONTEND:latest"
-          }
+          sh "docker build -t ${DOCKER_IMAGE_FRONTEND}:latest ."
+          sh "docker push ${DOCKER_IMAGE_FRONTEND}:latest"
         }
       }
     }
